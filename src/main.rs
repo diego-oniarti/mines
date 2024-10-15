@@ -88,7 +88,6 @@ fn main() {
                     (KeyCode::Char('q'), _) | (KeyCode::Esc, _) => break,
                     _ => {}
                 }
-                game.draw();
             }
         }
         if game.is_lost() || game.is_won() {
@@ -98,6 +97,7 @@ fn main() {
         // Sleep to prevent high CPU usage
         thread::sleep(Duration::from_millis(16)); // Roughly 60 FPS
     }
+    game.draw();
     if game.is_won() {
         stdout.execute(cursor::MoveTo(0, map_height as u16)).unwrap();
         stdout.execute(SetBackgroundColor(Color::Green)).unwrap();

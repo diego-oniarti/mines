@@ -94,20 +94,32 @@ impl Game {
 
 
     pub fn move_up(&mut self) {
+        let old_y = self.y;
         self.y = self.y.saturating_sub(1);
+        self.draw_cell(self.x, old_y);
+        self.draw_cell(self.x, self.y);
     }
     pub fn move_left(&mut self) {
+        let old_x = self.x;
         self.x = self.x.saturating_sub(1);
+        self.draw_cell(old_x, self.y);
+        self.draw_cell(self.x, self.y);
     }
     pub fn move_down(&mut self) {
+        let old_y = self.y;
         if self.y+1 < self.get_h() {
             self.y += 1;
         }
+        self.draw_cell(self.x, old_y);
+        self.draw_cell(self.x, self.y);
     }
     pub fn move_right(&mut self) {
+        let old_x = self.x;
         if self.x+1 < self.get_w() {
             self.x += 1;
         }
+        self.draw_cell(old_x, self.y);
+        self.draw_cell(self.x, self.y);
     }
 
     pub fn long_up(&mut self) {
@@ -180,6 +192,8 @@ impl Game {
             }
             _ => {}
         }
+        
+        self.draw_cell(x,y);
     }
 
     fn check_win(&mut self) {
@@ -208,6 +222,59 @@ impl Game {
             Cella::Safe(a,b,f) => Cella::Safe(a,b,!f),
             Cella::Bomb(f) => Cella::Bomb(!f)
         };
+        
+        self.draw_cell(x,y);
+    }
+
+    fn draw_cell(&self, x:usize, y:usize) {
+        let mut stdout = stdout();
+
+        stdout.execute(cursor::MoveTo(x as u16 * 2, y as u16)).unwrap();
+        stdout.execute(SetBackgroundColor(Color::Black)).unwrap();
+        stdout.execute(SetForegroundColor(Color::White)).unwrap();
+
+        let hovering = x == self.x && y == self.y;
+        if hovering {
+            stdout.execute(SetBackgroundColor(Color::White)).unwrap();
+            stdout.execute(SetForegroundColor(Color::Black)).unwrap();
+        }
+        let cella: &Cella = self.get_cell(x, y).unwrap();
+        match cella {
+            Cella::Bomb(false) | Cella::Safe(_, true, false) => {
+                // ░▒
+                write!(stdout, "░░").unwrap();
+            },
+            Cella::Safe(0, false, _) => {
+                write!(stdout, "  ").unwrap();
+            }
+            Cella::Safe(n, false, _) => {
+                if hovering {
+                    stdout.execute(SetForegroundColor(Color::Black)).unwrap();
+                } else {
+                    match n {
+                        0 => {stdout.execute(SetForegroundColor(Color::Black)).unwrap();}
+                        1 => {stdout.execute(SetForegroundColor(Color::Blue)).unwrap();}
+                        2 => {stdout.execute(SetForegroundColor(Color::Green)).unwrap();}
+                        3 => {stdout.execute(SetForegroundColor(Color::Red)).unwrap();}
+                        4 => {stdout.execute(SetForegroundColor(Color::Magenta)).unwrap();}
+                        5 => {stdout.execute(SetForegroundColor(Color::DarkYellow)).unwrap();}
+                        6 => {stdout.execute(SetForegroundColor(Color::Blue)).unwrap();}
+                        7 => {stdout.execute(SetForegroundColor(Color::Green)).unwrap();}
+                        _ => {stdout.execute(SetForegroundColor(Color::Red)).unwrap();}
+                    }
+                }
+                write!(stdout, " {}", n).unwrap();
+            }
+            Cella::Safe(_, true, true) | Cella::Bomb(true) => {
+                stdout.execute(SetBackgroundColor(Color::DarkRed)).unwrap();
+                stdout.execute(SetForegroundColor(Color::Black)).unwrap();
+                if hovering {
+                    stdout.execute(SetBackgroundColor(Color::White)).unwrap();
+                }
+                write!(stdout, "FF").unwrap();
+            }
+        }
+        stdout.flush().unwrap();
     }
 
     pub fn draw(&self) {
@@ -217,6 +284,7 @@ impl Game {
             self.draw_alive()
         }
     }
+
     fn draw_alive(&self) {
         let mut stdout = stdout();
         let h = self.get_h();
@@ -231,51 +299,13 @@ impl Game {
         for y in 0..h {
             stdout.execute(cursor::MoveTo(0, y as u16)).unwrap();
             for x in 0..w {
-                let hovering = x == self.x && y == self.y;
-                if hovering {
-                    stdout.execute(SetBackgroundColor(Color::White)).unwrap();
-                    stdout.execute(SetForegroundColor(Color::Black)).unwrap();
-                }
-                let cella: &Cella = self.get_cell(x, y).unwrap();
-                match cella {
-                    Cella::Bomb(false) | Cella::Safe(_, true, false) => {
-                        // ░▒
-                        write!(stdout, "░░").unwrap();
-                    },
-                    Cella::Safe(0, false, _) => {
-                        write!(stdout, "  ").unwrap();
-                    }
-                    Cella::Safe(n, false, _) => {
-                        if hovering {
-                            stdout.execute(SetForegroundColor(Color::Black)).unwrap();
-                        } else {
-                            match n {
-                                0 => {stdout.execute(SetForegroundColor(Color::Black)).unwrap();}
-                                1 => {stdout.execute(SetForegroundColor(Color::Blue)).unwrap();}
-                                2 => {stdout.execute(SetForegroundColor(Color::Green)).unwrap();}
-                                3 => {stdout.execute(SetForegroundColor(Color::Red)).unwrap();}
-                                4 => {stdout.execute(SetForegroundColor(Color::Magenta)).unwrap();}
-                                5 => {stdout.execute(SetForegroundColor(Color::DarkYellow)).unwrap();}
-                                6 => {stdout.execute(SetForegroundColor(Color::Blue)).unwrap();}
-                                7 => {stdout.execute(SetForegroundColor(Color::Green)).unwrap();}
-                                _ => {stdout.execute(SetForegroundColor(Color::Red)).unwrap();}
-                            }
-                        }
-                        write!(stdout, " {}", n).unwrap();
-                    }
-                    Cella::Safe(_, true, true) | Cella::Bomb(true) => {
-                        stdout.execute(SetBackgroundColor(Color::DarkRed)).unwrap();
-                        stdout.execute(SetForegroundColor(Color::Black)).unwrap();
-                        write!(stdout, "FF").unwrap();
-                    }
-                }
-                stdout.execute(SetBackgroundColor(Color::Black)).unwrap();
-                stdout.execute(SetForegroundColor(Color::White)).unwrap();
+                self.draw_cell(x,y);
             }
             writeln!(stdout).unwrap();
         }
         stdout.flush().unwrap();
     }
+
     fn draw_dead(&self) {
         let mut stdout = stdout();
         let h = self.get_h();
