@@ -2,7 +2,7 @@ mod game;
 
 use clap::Parser;
 use crossterm::{
-    cursor, event::{self, Event, KeyCode, KeyEvent, KeyModifiers}, style::{Color, SetBackgroundColor, SetForegroundColor}, terminal::{self}, ExecutableCommand
+    cursor, event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers}, style::{Color, SetBackgroundColor, SetForegroundColor}, terminal::{self}, ExecutableCommand
 };
 use game::Game;
 use std::{io::{stdout, Write}, time::Duration, thread};
@@ -53,43 +53,45 @@ fn main() {
     loop {
         // Handle input
         if event::poll(Duration::from_millis(100)).unwrap() {
-            if let Event::Key(KeyEvent { code, modifiers, .. }) = event::read().unwrap() {
-                match (code, modifiers) {
-                    (KeyCode::Up, KeyModifiers::NONE) | (KeyCode::Char('k'), KeyModifiers::NONE) => {
-                        game.move_up();
-                    }
-                    (KeyCode::Down, KeyModifiers::NONE) | (KeyCode::Char('j'), KeyModifiers::NONE) => {
-                        game.move_down();
-                    }
-                    (KeyCode::Left, KeyModifiers::NONE) | (KeyCode::Char('h'), KeyModifiers::NONE) => {
-                        game.move_left();
-                    }
-                    (KeyCode::Right, KeyModifiers::NONE) | (KeyCode::Char('l'), KeyModifiers::NONE) => {
-                        game.move_right();
-                    }
+            if let Event::Key(KeyEvent { code, modifiers, kind, .. }) = event::read().unwrap() {
+                if kind == KeyEventKind::Press {  // Only handle key presses
+                    match (code, modifiers) {
+                        (KeyCode::Up, KeyModifiers::NONE) | (KeyCode::Char('k'), KeyModifiers::NONE) => {
+                            game.move_up();
+                        }
+                        (KeyCode::Down, KeyModifiers::NONE) | (KeyCode::Char('j'), KeyModifiers::NONE) => {
+                            game.move_down();
+                        }
+                        (KeyCode::Left, KeyModifiers::NONE) | (KeyCode::Char('h'), KeyModifiers::NONE) => {
+                            game.move_left();
+                        }
+                        (KeyCode::Right, KeyModifiers::NONE) | (KeyCode::Char('l'), KeyModifiers::NONE) => {
+                            game.move_right();
+                        }
 
-                    (KeyCode::Char('k'), KeyModifiers::CONTROL) | (KeyCode::Up, KeyModifiers::CONTROL) => {
-                        game.long_up();
-                    }
-                    (KeyCode::Char('j'), KeyModifiers::CONTROL) | (KeyCode::Down, KeyModifiers::CONTROL) => {
-                        game.long_down();
-                    }
-                    (KeyCode::Char('h'), KeyModifiers::CONTROL) | (KeyCode::Left, KeyModifiers::CONTROL) => {
-                        game.long_left();
-                    }
-                    (KeyCode::Char('l'), KeyModifiers::CONTROL) | (KeyCode::Right, KeyModifiers::CONTROL) => {
-                        game.long_right();
-                    }
+                        (KeyCode::Char('k'), KeyModifiers::CONTROL) | (KeyCode::Up, KeyModifiers::CONTROL) => {
+                            game.long_up();
+                        }
+                        (KeyCode::Char('j'), KeyModifiers::CONTROL) | (KeyCode::Down, KeyModifiers::CONTROL) => {
+                            game.long_down();
+                        }
+                        (KeyCode::Char('h'), KeyModifiers::CONTROL) | (KeyCode::Left, KeyModifiers::CONTROL) => {
+                            game.long_left();
+                        }
+                        (KeyCode::Char('l'), KeyModifiers::CONTROL) | (KeyCode::Right, KeyModifiers::CONTROL) => {
+                            game.long_right();
+                        }
 
-                    (KeyCode::Char('x'), _) | (KeyCode::Char('f'), _) => {
-                        game.click();
+                        (KeyCode::Char('x'), _) | (KeyCode::Char('f'), _) => {
+                            game.click();
+                        }
+                        (KeyCode::Char('z'), _) | (KeyCode::Char('d'), _) => {
+                            game.flag();
+                        }
+                        // Quit with 'q' or Esc
+                        (KeyCode::Char('q'), _) | (KeyCode::Esc, _) => break,
+                        _ => {}
                     }
-                    (KeyCode::Char('z'), _) | (KeyCode::Char('d'), _) => {
-                        game.flag();
-                    }
-                    // Quit with 'q' or Esc
-                    (KeyCode::Char('q'), _) | (KeyCode::Esc, _) => break,
-                    _ => {}
                 }
             }
         }
