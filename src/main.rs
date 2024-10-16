@@ -46,6 +46,9 @@ fn main() {
 
     let mut game: Game = Game::new(map_width, map_height, bomb_probability);
 
+    // Clear the screen
+    stdout.execute(terminal::Clear(terminal::ClearType::All)).unwrap();
+
     game.draw();
     loop {
         // Handle input

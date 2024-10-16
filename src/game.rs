@@ -1,5 +1,5 @@
 use crossterm::{
-    cursor, style::{Color, SetBackgroundColor, SetForegroundColor}, terminal::{self, ClearType}, ExecutableCommand
+    cursor, style::{Color, SetBackgroundColor, SetForegroundColor}, ExecutableCommand
 };
 use std::io::{stdout, Write};
 use rand::Rng;
@@ -291,24 +291,15 @@ impl Game {
     }
 
     fn draw_alive(&self) {
-        let mut stdout = stdout();
         let h = self.get_h();
         let w = self.get_w();
 
-        // Clear the screen
-        stdout.execute(SetBackgroundColor(Color::Black)).unwrap();
-        stdout.execute(SetForegroundColor(Color::White)).unwrap();
-        stdout.execute(terminal::Clear(ClearType::All)).unwrap();
-
         // Draw the map with a blinking cursor at the player's position
         for y in 0..h {
-            stdout.execute(cursor::MoveTo(0, y as u16)).unwrap();
             for x in 0..w {
                 self.draw_cell(x,y);
             }
-            writeln!(stdout).unwrap();
         }
-        stdout.flush().unwrap();
     }
 
     fn draw_dead(&self) {
@@ -316,25 +307,20 @@ impl Game {
         let h = self.get_h();
         let w = self.get_w();
 
-        // Clear the screen
-        stdout.execute(terminal::Clear(ClearType::All)).unwrap();
-        stdout.execute(SetBackgroundColor(Color::Black)).unwrap();
-        stdout.execute(SetForegroundColor(Color::White)).unwrap();
-
         // Draw the map with a blinking cursor at the player's position
         for y in 0..h {
             stdout.execute(cursor::MoveTo(0, y as u16)).unwrap();
             for x in 0..w {
+                stdout.execute(SetBackgroundColor(Color::Black)).unwrap();
+                stdout.execute(SetForegroundColor(Color::White)).unwrap();
+
                 let cella: &Cella = self.get_cell(x, y).unwrap();
                 match cella {
-                    Cella::Bomb(false) => {
-                        stdout.execute(SetBackgroundColor(Color::Red)).unwrap();
-                        write!(stdout, "XX").unwrap();
-                        stdout.execute(SetBackgroundColor(Color::Black)).unwrap();
-                    },
                     Cella::Safe(_, true, false) => {
-                        write!(stdout, "░░").unwrap();
-                    }
+                        // ▓░▒█
+                        stdout.execute(SetForegroundColor(Color::Rgb{r:150,g:150,b:150})).unwrap();
+                        write!(stdout, "██").unwrap();
+                    },
                     Cella::Safe(0, false, _) => {
                         write!(stdout, "  ").unwrap();
                     }
@@ -353,18 +339,23 @@ impl Game {
                         write!(stdout, " {}", n).unwrap();
                     }
                     Cella::Safe(_, true, true) => {
+                        stdout.execute(SetBackgroundColor(Color::Rgb{r:150,g:150,b:150})).unwrap();
+                        stdout.execute(SetForegroundColor(Color::Black)).unwrap();
                         write!(stdout, "FF").unwrap();
                     }
                     Cella::Bomb(true) => {
-                        stdout.execute(SetBackgroundColor(Color::Red)).unwrap();
+                        stdout.execute(SetBackgroundColor(Color::DarkRed)).unwrap();
+                        stdout.execute(SetForegroundColor(Color::Black)).unwrap();
                         write!(stdout, "FF").unwrap();
-                        stdout.execute(SetBackgroundColor(Color::Black)).unwrap();
+                    }
+                    Cella::Bomb(false) => {
+                        stdout.execute(SetBackgroundColor(Color::DarkRed)).unwrap();
+                        stdout.execute(SetForegroundColor(Color::Black)).unwrap();
+                        write!(stdout, "XX").unwrap();
                     }
                 }
-                stdout.execute(SetBackgroundColor(Color::Black)).unwrap();
-                stdout.execute(SetForegroundColor(Color::White)).unwrap();
+                stdout.flush().unwrap();
             }
-            writeln!(stdout).unwrap();
         }
         stdout.flush().unwrap();
     }
