@@ -241,8 +241,13 @@ impl Game {
         let cella: &Cella = self.get_cell(x, y).unwrap();
         match cella {
             Cella::Bomb(false) | Cella::Safe(_, true, false) => {
-                // ░▒
-                write!(stdout, "░░").unwrap();
+                // ▓░▒█
+                if hovering {
+                    stdout.execute(SetForegroundColor(Color::White)).unwrap();
+                } else {
+                    stdout.execute(SetForegroundColor(Color::Rgb{r:150,g:150,b:150})).unwrap();
+                }
+                write!(stdout, "██").unwrap();
             },
             Cella::Safe(0, false, _) => {
                 write!(stdout, "  ").unwrap();
