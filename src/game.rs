@@ -1,5 +1,5 @@
 use crossterm::{
-    cursor, style::{Color, SetBackgroundColor, SetForegroundColor}, ExecutableCommand
+    cursor, style::{Color, SetBackgroundColor, SetForegroundColor}, terminal::{Clear, ClearType}, ExecutableCommand
 };
 use std::io::{stdout, Write};
 use rand::Rng;
@@ -16,12 +16,15 @@ pub struct Game {
     y: usize,
     lost: bool,
     won: bool,
+    n_bombs: usize,
+    n_flags: usize,
 }
 
 impl Game {
     pub fn new(w: usize, h: usize, bomb_prob: f32) -> Self {
         let mut rng = rand::thread_rng();
         let mut cells: Vec<Vec<Cella>> = Vec::new();
+        let mut n_bombs = 0;
         for _ in 0..h {
             let mut new_row: Vec<Cella> = Vec::new();
             for _ in 0..w {
@@ -29,12 +32,21 @@ impl Game {
                     new_row.push(Cella::Safe(0, true, false));
                 }else{
                     new_row.push(Cella::Bomb(false));
+                    n_bombs+=1;
                 }
             }
             cells.push(new_row);
         }
 
-        let mut ret = Game {cells, x:w/2, y:h/2, lost:false, won:false};
+        let mut ret = Game {
+            cells,
+            x: w/2,
+            y: h/2,
+            lost: false,
+            won: false,
+            n_bombs,
+            n_flags: 0,
+        };
 
         for y in 0..h {
             for x in 0..w {
@@ -169,10 +181,13 @@ impl Game {
         }{return}
 
         self.cells.get_mut(y).unwrap()[x] = match cel {
-            Cella::Safe(n, true, _) => {
+            Cella::Safe(n, true, f) => {
+                if f {
+                    self.n_flags-=1;
+                }
                 Cella::Safe(n, false, false)
             }
-            _ => cel.clone()
+            _ => cel
         };
 
         let h = self.get_h();
@@ -222,8 +237,28 @@ impl Game {
             Cella::Safe(a,b,f) => Cella::Safe(a,b,!f),
             Cella::Bomb(f) => Cella::Bomb(!f)
         };
+        match old {
+            Cella::Safe(_, true, false) | Cella::Bomb(false) => {
+                self.n_flags+=1;
+            }
+            Cella::Safe(_, true, true) | Cella::Bomb(true) => {
+                self.n_flags-=1;
+            }
+            _ => {}
+        }
         
+        self.update_bomb_count();
         self.draw_cell(x,y);
+    }
+
+    fn update_bomb_count(&self) {
+        let mut stdout = stdout();
+
+        stdout.execute(cursor::MoveTo(0, self.get_h() as u16)).unwrap();
+        stdout.execute(SetBackgroundColor(Color::Reset)).unwrap();
+        stdout.execute(SetForegroundColor(Color::Reset)).unwrap();
+        stdout.execute(Clear(ClearType::CurrentLine)).unwrap();
+        write!(stdout, "{}/{}", self.n_flags, self.n_bombs).unwrap();
     }
 
     fn draw_cell(&self, x:usize, y:usize) {
