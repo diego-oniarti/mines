@@ -113,5 +113,7 @@ fn main() {
 
     // Cleanup: Show the cursor again and disable raw mode
     stdout.execute(cursor::Show).unwrap();
+    stdout.execute(SetForegroundColor(Color::Reset)).unwrap();
+    stdout.execute(SetBackgroundColor(Color::Reset)).unwrap();
     terminal::disable_raw_mode().unwrap();
 }
