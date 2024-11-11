@@ -88,6 +88,9 @@ fn main() {
                         (KeyCode::Char('z'), _) | (KeyCode::Char('d'), _) => {
                             game.flag();
                         }
+                        (KeyCode::Char('c'), _) | (KeyCode::Char('r'), _) => {
+                            game.refresh();
+                        }
                         // Quit with 'q' or Esc
                         (KeyCode::Char('q'), _) | (KeyCode::Esc, _) => break,
                         _ => {}

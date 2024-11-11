@@ -325,6 +325,15 @@ impl Game {
         }
     }
 
+    pub fn refresh(&self) {
+        let mut stdout = stdout();
+        stdout.execute(SetForegroundColor(Color::Reset)).unwrap();
+        stdout.execute(SetBackgroundColor(Color::Reset)).unwrap();
+        stdout.execute(Clear(ClearType::All)).unwrap();
+        self.draw();
+        self.update_bomb_count();
+    }
+
     fn draw_alive(&self) {
         let h = self.get_h();
         let w = self.get_w();
