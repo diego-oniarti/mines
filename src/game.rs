@@ -20,6 +20,17 @@ pub struct Game {
     n_flags: usize,
 }
 
+const NUMBER_COLORS: [Color; 8] = [
+    Color::Black,
+    Color::Blue,
+    Color::Green,
+    Color::Red,
+    Color::Magenta,
+    Color::DarkYellow,
+    Color::Blue,
+    Color::Green
+];
+
 impl Game {
     pub fn new(w: usize, h: usize, bomb_prob: f32) -> Self {
         let mut rng = rand::thread_rng();
@@ -292,14 +303,7 @@ impl Game {
                     stdout.execute(SetForegroundColor(Color::Black)).unwrap();
                 } else {
                     match n {
-                        0 => {stdout.execute(SetForegroundColor(Color::Black)).unwrap();}
-                        1 => {stdout.execute(SetForegroundColor(Color::Blue)).unwrap();}
-                        2 => {stdout.execute(SetForegroundColor(Color::Green)).unwrap();}
-                        3 => {stdout.execute(SetForegroundColor(Color::Red)).unwrap();}
-                        4 => {stdout.execute(SetForegroundColor(Color::Magenta)).unwrap();}
-                        5 => {stdout.execute(SetForegroundColor(Color::DarkYellow)).unwrap();}
-                        6 => {stdout.execute(SetForegroundColor(Color::Blue)).unwrap();}
-                        7 => {stdout.execute(SetForegroundColor(Color::Green)).unwrap();}
+                        0..7 => {stdout.execute(SetForegroundColor(NUMBER_COLORS[*n])).unwrap();}
                         _ => {stdout.execute(SetForegroundColor(Color::Red)).unwrap();}
                     }
                 }
