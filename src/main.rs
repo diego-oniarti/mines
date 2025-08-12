@@ -69,16 +69,16 @@ fn main() {
                             game.move_right();
                         }
 
-                        (KeyCode::Char('k'), KeyModifiers::CONTROL) | (KeyCode::Up, KeyModifiers::CONTROL) => {
+                        (KeyCode::Char('k'), KeyModifiers::CONTROL) | (KeyCode::Up, KeyModifiers::CONTROL) | (KeyCode::Char('K'), KeyModifiers::SHIFT) => {
                             game.long_up();
                         }
-                        (KeyCode::Char('j'), KeyModifiers::CONTROL) | (KeyCode::Down, KeyModifiers::CONTROL) => {
+                        (KeyCode::Char('j'), KeyModifiers::CONTROL) | (KeyCode::Down, KeyModifiers::CONTROL) | (KeyCode::Char('J'), KeyModifiers::SHIFT) => {
                             game.long_down();
                         }
-                        (KeyCode::Char('h'), KeyModifiers::CONTROL) | (KeyCode::Left, KeyModifiers::CONTROL) => {
+                        (KeyCode::Char('h'), KeyModifiers::CONTROL) | (KeyCode::Left, KeyModifiers::CONTROL) | (KeyCode::Char('H'), KeyModifiers::SHIFT) => {
                             game.long_left();
                         }
-                        (KeyCode::Char('l'), KeyModifiers::CONTROL) | (KeyCode::Right, KeyModifiers::CONTROL) => {
+                        (KeyCode::Char('l'), KeyModifiers::CONTROL) | (KeyCode::Right, KeyModifiers::CONTROL) | (KeyCode::Char('L'), KeyModifiers::SHIFT) => {
                             game.long_right();
                         }
 

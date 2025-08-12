@@ -105,64 +105,91 @@ impl Game {
     }
 
 
-    pub fn move_up(&mut self) {
+    pub fn move_up(&mut self) -> bool {
+        if self.y==0 {return false;}
         let old_y = self.y;
         self.y = self.y.saturating_sub(1);
         self.draw_cell(self.x, old_y);
         self.draw_cell(self.x, self.y);
+        return true;
     }
-    pub fn move_left(&mut self) {
+    pub fn move_left(&mut self) -> bool {
+        if self.x==0 {return false;}
         let old_x = self.x;
         self.x = self.x.saturating_sub(1);
         self.draw_cell(old_x, self.y);
         self.draw_cell(self.x, self.y);
+        return true;
     }
-    pub fn move_down(&mut self) {
+    pub fn move_down(&mut self) -> bool {
+        if self.y>=self.get_h()-1 { return false;}
         let old_y = self.y;
-        if self.y+1 < self.get_h() {
-            self.y += 1;
-        }
+        self.y += 1;
         self.draw_cell(self.x, old_y);
         self.draw_cell(self.x, self.y);
+        return true;
     }
-    pub fn move_right(&mut self) {
+    pub fn move_right(&mut self) -> bool {
+        if self.x>=self.get_w()-1 {return false;}
         let old_x = self.x;
-        if self.x+1 < self.get_w() {
-            self.x += 1;
-        }
+        self.x += 1;
         self.draw_cell(old_x, self.y);
         self.draw_cell(self.x, self.y);
+        return true;
+    }
+
+    fn long_move(&mut self, mv: fn(&mut Game)->bool, mv2: fn(&mut Game)->bool) {
+        let old_cell = self.get_cell(self.x, self.y).unwrap().clone();
+        let was_hidden: bool = match old_cell {
+            Cella::Safe(_count, hidden, flag) => hidden && !flag,
+            Cella::Bomb(flag) => !flag,
+        };
+
+        loop {
+            if !mv(self) {return;}
+
+            let new_cell = self.get_cell(self.x, self.y).unwrap();
+            let is_hidden: bool = match new_cell {
+                Cella::Safe(_count, hidden, flag) => (*hidden) && !(*flag),
+                Cella::Bomb(flag) => !(*flag),
+            };
+            let is_flagged: bool = match new_cell {
+                Cella::Safe(_count, _hidden, flag) => *flag,
+                Cella::Bomb(flag) => *flag,
+            };
+
+            if (was_hidden ^ is_hidden) || (!was_hidden && is_flagged) {
+                if !is_flagged {
+                    mv2(self);
+                }
+                break;
+            }
+        }
     }
 
     pub fn long_up(&mut self) {
-        /*
-        let x = self.x;
-        let mut y = self.y;
-        let old_cell = self.get_cell(x,y).unwrap();
-        loop {
-            y = y.saturating_sub(0);
-            if y==0 {break;}
-            let new_cell = self.get_cell(x,y).unwrap();
-            if new_cell == old_cell {continue}
-            if match new_cell {
-                Cella::Safe(_,false,false) => {
-                    match old_cell {
-                        Cella::Safe(_,false,_) => false,
-                        _ => true
-                    }
-                }
-                _ => true
-            } {break};
-        }
-
-        self.y = y;
-        */
+        self.long_move(
+            |g: &mut Game|->bool{g.move_up()},
+            |g: &mut Game|->bool{g.move_down()}
+        );
     }
     pub fn long_down(&mut self) {
+        self.long_move(
+            |g: &mut Game|->bool{g.move_down()},
+            |g: &mut Game|->bool{g.move_up()}
+        );
     }
     pub fn long_left(&mut self) {
+        self.long_move(
+            |g: &mut Game|->bool{g.move_left()},
+            |g: &mut Game|->bool{g.move_right()}
+        );
     }
     pub fn long_right(&mut self) {
+        self.long_move(
+            |g: &mut Game|->bool{g.move_right()},
+            |g: &mut Game|->bool{g.move_left()}
+        );
     }
 
     fn click_coords(&mut self, x:usize, y:usize) {
