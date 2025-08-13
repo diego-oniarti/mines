@@ -222,6 +222,7 @@ impl Game {
             Cella::Safe(n, true, f) => {
                 if f {
                     self.n_flags-=1;
+                    self.update_bomb_count();
                 }
                 Cella::Safe(n, false, false)
             }
@@ -349,6 +350,7 @@ impl Game {
     }
 
     pub fn draw(&self) {
+        self.update_bomb_count();
         if self.lost {
             self.draw_dead()
         } else {
