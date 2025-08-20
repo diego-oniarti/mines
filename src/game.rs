@@ -208,11 +208,13 @@ impl Game {
         let cel = self.get_cell_mut(x,y).unwrap().clone();
 
         if match cel {
-            Cella::Bomb(_) => {
-                self.lost = true;
+            Cella::Bomb(flag) => {
+                if !flag {
+                    self.lost = true;
+                }
                 false
             }
-            Cella::Safe(_, false, _) => {
+            Cella::Safe(_, false, _) | Cella::Safe(_, _, true) => {
                 true
             }
             _ => {false}
